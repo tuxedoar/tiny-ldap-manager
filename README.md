@@ -1,2 +1,2 @@
-# tiny-ldap-manager
-Easily perform several LDAP operations.
+# Tiny LDAP Manager
+Sorry, nothing released yet!.
