@@ -4,6 +4,7 @@ import logging
 import getpass
 from sys import exit
 import ldap
+import ldap.modlist as modlist
 
 def main():
     """ Menu arguments handling """
@@ -16,12 +17,16 @@ def main():
     parser.add_argument('BINDDN', help='DN of the user to bind the LDAP server')
     # LDAP available operations to perform!!:
     subparser = parser.add_subparsers(dest='action')
+    # List LDAP attributes from DN!
     ldap_ls = subparser.add_parser('ls', \
             help='List LDAP attributes for specified DN')
     ldap_ls.add_argument('basedn')
+    # Modify existing LDAP attributes
     ldap_modify = subparser.add_parser('modify', \
             help="Modify an LDAP attribute")
-    ldap_modify.add_argument('value')
+    ldap_modify.add_argument('target_dn')
+    ldap_modify.add_argument('target_attr')
+    ldap_modify.add_argument('new_value')
     args = parser.parse_args()
 
     try:
@@ -31,7 +36,8 @@ def main():
             ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_modify.set_defaults(func=ldap_action_modify())
+            ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
+                args.target_dn, args.target_attr, args.new_value))
         else:
             logging.critical("You need to provide at least one action to perform!")
             exit(0)
@@ -65,9 +71,25 @@ def ldap_action_ls(ldap_session, basedn):
     ldap_session.unbind()
     return 0
 
-def ldap_action_modify():
+def ldap_action_modify(ldap_session, dn, attr, new_value):
     """ Modify LDAP attributes """
     logging.info("\nLet's modify an LDAP attribute!\n")
+    ldap_data = ldap_session.search_s(dn, ldap.SCOPE_BASE, 'objectClass=*')
+    attrs = [i[1] for i in ldap_data]
+    if attrs[0].get(attr):
+        # Encode attribute to byte strings 
+        new_value = [new_value.encode('utf-8')]
+        # Do the actual operation!
+        current_attr = attrs[0][attr]# [0].decode()
+        old = {attr:current_attr}
+        new = {attr:new_value}
+        ldif = modlist.modifyModlist(old,new)
+        ldap_session.modify_s(dn, ldif)
+        logging.info("Current attribute %s value: %s\nNew value: %s\n \
+            ".format(attr, current_attr, new_value))
+    else:
+        logging.critical("ERROR: No attribute %s was found!", attr)
+        exit(0)
 
 if __name__ == "__main__":
     main()
