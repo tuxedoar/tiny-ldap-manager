@@ -1,3 +1,13 @@
+#!/home/fulano/python-ldap/env/bin/python3
+
+# Usage should look like this:
+#   tiny-ldap-manager [SERVER] [BIND_DN] [ACTION] [SUB-ACTION]
+#
+
+# https://rosettacode.org/wiki/Active_Directory/Search_for_a_user#Python
+# http://www.grotan.com/ldap/python-ldap-samples.html
+# https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a (example ofargparse)
+# 
 
 import argparse
 import logging
@@ -63,13 +73,18 @@ def start_ldap_session(server, binddn):
 
 def ldap_action_ls(ldap_session, basedn):
     """ Show attributes for specified DN """
+    attrs = retrieve_attrs_from_dn(ldap_session, basedn)
+    for key, value in attrs[0].items():
+        print("{}:\t{}".format(key, value[0].decode()))
+
+
+def retrieve_attrs_from_dn(ldap_session, basedn):
+    """ Retrieve attributes from given DN """
     logging.info("\nShowing  attributes for: {}:\n\n".format(basedn))
     ldap_data = ldap_session.search_s(basedn, ldap.SCOPE_BASE, 'objectClass=*')
     attrs = [i[1] for i in ldap_data]
-    for key, value in attrs[0].items():
-        print("{}:\t{}".format(key, value[0].decode()))
     ldap_session.unbind()
-    return 0
+    return attrs
 
 def ldap_action_modify(ldap_session, dn, attr, new_value):
     """ Modify LDAP attributes """
