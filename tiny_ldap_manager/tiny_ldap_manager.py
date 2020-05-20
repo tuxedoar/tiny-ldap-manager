@@ -1,3 +1,5 @@
+#!/home/fulano/python-ldap/env/bin/python3
+
 # Copyright 2020 by Tuxedoar <tuxedoar@gmail.com>
 
 # LICENSE
@@ -40,9 +42,9 @@ def main():
     # Modify existing LDAP attributes
     ldap_modify = subparser.add_parser('modify', \
             help="Modify an LDAP attribute")
-    ldap_modify.add_argument('target_dn')
-    ldap_modify.add_argument('target_attr')
-    ldap_modify.add_argument('new_value')
+    ldap_modify.add_argument('target_dn', help="Object DN to be modified")
+    ldap_modify.add_argument('target_attr', help="Attribute to be modified")
+    ldap_modify.add_argument('new_value', help="New value for attribute")
     args = parser.parse_args()
 
     try:
