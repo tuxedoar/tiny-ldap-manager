@@ -1,13 +1,3 @@
-#!/home/fulano/python-ldap/env/bin/python3
-
-# Usage should look like this:
-#   tiny-ldap-manager [SERVER] [BIND_DN] [ACTION] [SUB-ACTION]
-#
-
-# https://rosettacode.org/wiki/Active_Directory/Search_for_a_user#Python
-# http://www.grotan.com/ldap/python-ldap-samples.html
-# https://gist.github.com/amarao/36327a6f77b86b90c2bca72ba03c9d3a (example ofargparse)
-# 
 
 import argparse
 import logging
