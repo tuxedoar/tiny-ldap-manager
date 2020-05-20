@@ -40,7 +40,7 @@ def main():
     # Modify existing LDAP attributes
     ldap_modify = subparser.add_parser('modify', \
             help="Modify an LDAP attribute")
-    ldap_modify.add_argument('target_dn', help="Object DN to be modified")
+    ldap_modify.add_argument('modify_dn', help="Object DN to be modified")
     ldap_modify.add_argument('target_attr', help="Attribute to be modified")
     ldap_modify.add_argument('new_value', help="New value for attribute")
     # Delete an LDAP entry!
@@ -57,7 +57,7 @@ def main():
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
-                args.target_dn, args.target_attr, args.new_value))
+                args.modify_dn, args.target_attr, args.new_value))
         elif args.action == "delete":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
