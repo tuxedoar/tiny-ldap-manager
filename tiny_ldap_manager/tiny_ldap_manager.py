@@ -31,7 +31,7 @@ def main():
         description="Easily perform several LDAP operations")
     parser.add_argument('SERVER', help='URI formatted address of the LDAP server')
     parser.add_argument('BINDDN', help='DN of the user to bind the LDAP server')
-    # LDAP available operations to perform!!:
+    # LDAP subparser for operations available to perform
     subparser = parser.add_subparsers(dest='action')
     # List LDAP attributes from DN!
     ldap_ls = subparser.add_parser('ls', \
@@ -43,6 +43,10 @@ def main():
     ldap_modify.add_argument('target_dn', help="Object DN to be modified")
     ldap_modify.add_argument('target_attr', help="Attribute to be modified")
     ldap_modify.add_argument('new_value', help="New value for attribute")
+    # Delete an LDAP entry!
+    ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
+    ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
+
     args = parser.parse_args()
 
     try:
@@ -54,6 +58,10 @@ def main():
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
                 args.target_dn, args.target_attr, args.new_value))
+        elif args.action == "delete":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
+                args.delete_dn))
         else:
             logging.critical("You need to provide at least one action to perform!")
             exit(0)
@@ -112,6 +120,26 @@ def ldap_action_modify(ldap_session, dn, attr, new_value):
         logging.critical("ERROR: No attribute %s was found!", attr)
         exit(0)
     ldap_session.unbind()
+
+
+def ldap_action_delete(ldap_session, delete_dn):
+    """ Delete an LDAP entry based on DN """
+    logging.info("\nWARNING: you are about to delete the " \
+    "following LDAP entry:\n\n %s\n", delete_dn)
+    logging.info("\n##### This operation IS NOT REVERSIBLE!!!. " \
+    "ALWAYS have a working backup first! #####\n")
+
+    user_confirm = str(input("\nAre you sure you want to proceed? (YES/n)"))
+    while user_confirm != "YES" and user_confirm != "n":
+        user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
+    if user_confirm == 'n':
+        logging.info("\nOperation has been canceled!!\n")
+        ldap_session.unbind()
+        exit(0)
+    else:
+        ldap_session.delete_s(delete_dn)
+        logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
+        ldap_session.unbind()
 
 if __name__ == "__main__":
     main()
