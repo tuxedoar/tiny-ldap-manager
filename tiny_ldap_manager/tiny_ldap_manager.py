@@ -63,24 +63,24 @@ def start_ldap_session(server, binddn):
 
 def ldap_action_ls(ldap_session, basedn):
     """ Show attributes for specified DN """
+    logging.info("\nShowing  attributes for %s:\n\n", basedn)
     attrs = retrieve_attrs_from_dn(ldap_session, basedn)
     for key, value in attrs[0].items():
         print("{}:\t{}".format(key, value[0].decode()))
+    ldap_session.unbind()
 
 
 def retrieve_attrs_from_dn(ldap_session, basedn):
     """ Retrieve attributes from given DN """
-    logging.info("\nShowing  attributes for: {}:\n\n".format(basedn))
     ldap_data = ldap_session.search_s(basedn, ldap.SCOPE_BASE, 'objectClass=*')
     attrs = [i[1] for i in ldap_data]
-    ldap_session.unbind()
     return attrs
+
 
 def ldap_action_modify(ldap_session, dn, attr, new_value):
     """ Modify LDAP attributes """
-    logging.info("\nLet's modify an LDAP attribute!\n")
-    ldap_data = ldap_session.search_s(dn, ldap.SCOPE_BASE, 'objectClass=*')
-    attrs = [i[1] for i in ldap_data]
+    logging.info("\nModifying LDAP attribute %s in %s!\n", attr, dn)
+    attrs = retrieve_attrs_from_dn(ldap_session, dn)
     if attrs[0].get(attr):
         # Encode attribute to byte strings 
         new_value = [new_value.encode('utf-8')]
@@ -90,11 +90,12 @@ def ldap_action_modify(ldap_session, dn, attr, new_value):
         new = {attr:new_value}
         ldif = modlist.modifyModlist(old,new)
         ldap_session.modify_s(dn, ldif)
-        logging.info("Current attribute %s value: %s\nNew value: %s\n \
-            ".format(attr, current_attr, new_value))
+        logging.info("Previous %s attribute value: %s\nNew value: %s\n \
+            ", attr, current_attr[0].decode(), new_value[0].decode())
     else:
         logging.critical("ERROR: No attribute %s was found!", attr)
         exit(0)
+    ldap_session.unbind()
 
 if __name__ == "__main__":
     main()
