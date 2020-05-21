@@ -104,6 +104,19 @@ def retrieve_attrs_from_dn(ldap_session, basedn):
     attrs = [i[1] for i in ldap_data]
     return attrs
 
+
+def ldap_modify_replace_mode(ldap_session, attrs, attr, dn, new_value):
+    """ Replace an existing LDAP attribute's value """
+    # Do the actual operation!
+    current_attr = attrs[0][attr]# [0].decode()
+    old = {attr:current_attr}
+    new = {attr:new_value}
+    ldif = modlist.modifyModlist(old,new)
+    ldap_session.modify_s(dn, ldif)
+    logging.info("Previous %s attribute value: %s\nNew value: %s\n \
+        ", attr, current_attr[0].decode(), new_value[0].decode())
+
+
 def ldap_modify_add_mode(ldap_session, dn, attr, value):
     """ Add attribute in LDAP entry if NOT exists  """
     new_attr = [(ldap.MOD_ADD, attr, value)]
@@ -112,7 +125,7 @@ def ldap_modify_add_mode(ldap_session, dn, attr, value):
                 attr, value[0].decode())
 
 
-def ldap_modify_del_mode():
+def ldap_modify_delete_mode():
     pass
 
 
@@ -130,35 +143,20 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
         attrs[0][attr][0].decode() == new_value[0].decode():
         logging.critical("\nERROR: Existing value for attribute %s and the " \
         "provided one, can't be the same!\n", attr)
-        ldap_session.unbind()
-        exit(0)
     # Modify the existing attribute
     elif add_mode == 'REPLACE' and attrs[0].get(attr):
-        # Do the actual operation!
-        current_attr = attrs[0][attr]# [0].decode()
-        old = {attr:current_attr}
-        new = {attr:new_value}
-        ldif = modlist.modifyModlist(old,new)
-        ldap_session.modify_s(dn, ldif)
-        logging.info("Previous %s attribute value: %s\nNew value: %s\n \
-            ", attr, current_attr[0].decode(), new_value[0].decode())
-        ldap_session.unbind()
-        exit(0)
+        ldap_modify_replace_mode(ldap_session, attrs, attr, dn, new_value)
     # Create the given attribute if ADD mode is set! 
     elif add_mode == 'ADD' and not attrs[0].get(attr):
         ldap_modify_add_mode(ldap_session, dn, attr, new_value)
-        ldap_session.unbind()
-        exit(0)
     elif add_mode == 'DELETE' and attrs[0].get(attr):
         logging.info("\nAttribute %s to be deleted!\n")
-        ldap_session.unbind()
-        exit(0)
     else:
         logging.critical("\nERROR: Invalid modify mode or conflict exists " \
         "in DN %s with attribute %s!.\n Please, verify and try again!\n", \
         dn, attr)
-        ldap_session.unbind()
-        exit(0)
+    logging.info("\n\nClosing connection..!!\n")
+    ldap_session.unbind()
 
 
 def ldap_action_delete(ldap_session, delete_dn):
