@@ -125,8 +125,18 @@ def ldap_modify_add_mode(ldap_session, dn, attr, value):
                 attr, value[0].decode())
 
 
-def ldap_modify_delete_mode():
-    pass
+def ldap_modify_delete_mode(ldap_session, dn, attr):
+    """ Delete an attribute from LDAP entry """
+    logging.info("Attribute %s from DN %s will be removed\n", attr, dn)
+    user_confirm = str(input("Are you sure you wanna proceed? (YES/n)"))
+    while user_confirm != "YES" and user_confirm != "n":
+        user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
+    if user_confirm == 'n':
+        logging.info("\nOperation has been canceled!!\n")
+    else:
+        #new_value = None
+        ldap_session.modify_s(dn, [(ldap.MOD_DELETE, attr, None)])
+        logging.info("\nLDAP attribute %s has been removed!!\n", attr)
 
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
@@ -140,6 +150,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     # Valid modify modes are: REPLACE, ADD, DELETE
     # Check existing attr value != new value!
     if add_mode == 'REPLACE' and \
+        attrs[0].get(attr) and \
         attrs[0][attr][0].decode() == new_value[0].decode():
         logging.critical("\nERROR: Existing value for attribute %s and the " \
         "provided one, can't be the same!\n", attr)
@@ -150,7 +161,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     elif add_mode == 'ADD' and not attrs[0].get(attr):
         ldap_modify_add_mode(ldap_session, dn, attr, new_value)
     elif add_mode == 'DELETE' and attrs[0].get(attr):
-        logging.info("\nAttribute %s to be deleted!\n")
+        ldap_modify_delete_mode(ldap_session, dn, attr)
     else:
         logging.critical("\nERROR: Invalid modify mode or conflict exists " \
         "in DN %s with attribute %s!.\n Please, verify and try again!\n", \
