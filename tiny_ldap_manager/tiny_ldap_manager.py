@@ -43,6 +43,8 @@ def main():
     ldap_modify.add_argument('modify_dn', help="Object DN to be modified")
     ldap_modify.add_argument('target_attr', help="Attribute to be modified")
     ldap_modify.add_argument('new_value', help="New value for attribute")
+    ldap_modify.add_argument('-A','--addmode', action="store_true", \
+            help="Add given attribute if not present")
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
@@ -57,7 +59,7 @@ def main():
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
-                args.modify_dn, args.target_attr, args.new_value))
+                args.modify_dn, args.target_attr, args.new_value, args.addmode))
         elif args.action == "delete":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
@@ -100,14 +102,36 @@ def retrieve_attrs_from_dn(ldap_session, basedn):
     attrs = [i[1] for i in ldap_data]
     return attrs
 
+def ldap_modify_add_mode(ldap_session, dn, attr, value):
+    """ Add attribute in LDAP entry if NOT exists  """
+    new_attr = [(ldap.MOD_ADD, attr, value)]
+    ldap_session.modify_s(dn, new_attr)
+    logging.info("A new attribute has been added:\n %s: %s\n", \
+                attr, value[0].decode())
 
-def ldap_action_modify(ldap_session, dn, attr, new_value):
+
+def ldap_modify_del_mode():
+    pass
+
+
+def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
     logging.info("\nModifying LDAP attribute %s in %s!\n", attr, dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
+
+    # Encode attribute's new value to byte strings 
+    new_value = [new_value.encode('utf-8')]
+    # Create the given attribute if 'add mode' flag is True 
+    if add_mode and not attrs[0].get(attr):
+        ldap_modify_add_mode(ldap_session, dn, attr, new_value)
+        ldap_session.unbind()
+        exit(0)
+    else:
+        logging.critical("\nERROR: Attribute %s already exists!!\n", attr)
+        ldap_session.unbind()
+        exit(0)
+    # Modify the existing attribute
     if attrs[0].get(attr):
-        # Encode attribute to byte strings 
-        new_value = [new_value.encode('utf-8')]
         # Do the actual operation!
         current_attr = attrs[0][attr]# [0].decode()
         old = {attr:current_attr}
