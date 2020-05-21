@@ -1,5 +1,3 @@
-#!/home/fulano/python-ldap/env/bin/python3
-
 # Copyright 2020 by Tuxedoar <tuxedoar@gmail.com>
 
 # LICENSE
