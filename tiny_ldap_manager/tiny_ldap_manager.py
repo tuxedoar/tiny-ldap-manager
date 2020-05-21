@@ -108,42 +108,49 @@ def retrieve_attrs_from_dn(ldap_session, basedn):
 def ldap_modify_replace_mode(ldap_session, attrs, attr, dn, new_value):
     """ Replace an existing LDAP attribute's value """
     # Do the actual operation!
-    current_attr = attrs[0][attr]# [0].decode()
+    current_attr = attrs[0][attr]
     old = {attr:current_attr}
     new = {attr:new_value}
     ldif = modlist.modifyModlist(old,new)
     ldap_session.modify_s(dn, ldif)
-    logging.info("Previous %s attribute value: %s\nNew value: %s\n \
-        ", attr, current_attr[0].decode(), new_value[0].decode())
+    logging.info("\nAttribute %s value has been changed:\n\n" \
+    " Previous value: %s\n New value: %s\n" \
+    , attr, current_attr[0].decode(), new_value[0].decode())
 
 
 def ldap_modify_add_mode(ldap_session, dn, attr, value):
     """ Add attribute in LDAP entry if NOT exists  """
     new_attr = [(ldap.MOD_ADD, attr, value)]
     ldap_session.modify_s(dn, new_attr)
-    logging.info("A new attribute has been added:\n %s: %s\n", \
+    logging.info("A new attribute has been added:\n\n %s: %s\n", \
                 attr, value[0].decode())
 
 
-def ldap_modify_delete_mode(ldap_session, dn, attr):
-    """ Delete an attribute from LDAP entry """
-    logging.info("Attribute %s from DN %s will be removed\n", attr, dn)
+def ask_user_confirmation():
+    """ Ask for user confirmation """
     user_confirm = str(input("Are you sure you wanna proceed? (YES/n)"))
     while user_confirm != "YES" and user_confirm != "n":
         user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
     if user_confirm == 'n':
         logging.info("\nOperation has been canceled!!\n")
+        user_confirm = False
     else:
-        #new_value = None
+        user_confirm = True
+    return user_confirm
+
+
+def ldap_modify_delete_mode(ldap_session, dn, attr):
+    """ Delete an attribute from LDAP entry """
+    logging.info("The following attribute from %s will be removed:\n\n%s\n", dn, attr)
+    if ask_user_confirmation():
         ldap_session.modify_s(dn, [(ldap.MOD_DELETE, attr, None)])
         logging.info("\nLDAP attribute %s has been removed!!\n", attr)
 
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
-    logging.info("\nModifying LDAP attribute %s in %s!\n", attr, dn)
+    logging.info("\nPerforming an attribute modification in %s!\n", dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
-
     # Encode attribute's new value to byte strings 
     new_value = [new_value.encode('utf-8')]
 
@@ -166,7 +173,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
         logging.critical("\nERROR: Invalid modify mode or conflict exists " \
         "in DN %s with attribute %s!.\n Please, verify and try again!\n", \
         dn, attr)
-    logging.info("\n\nClosing connection..!!\n")
+    logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
 
@@ -176,18 +183,11 @@ def ldap_action_delete(ldap_session, delete_dn):
     "following LDAP entry:\n\n %s\n", delete_dn)
     logging.info("\n##### This operation IS NOT REVERSIBLE!!!. " \
     "ALWAYS have a working backup first! #####\n")
-
-    user_confirm = str(input("\nAre you sure you want to proceed? (YES/n)"))
-    while user_confirm != "YES" and user_confirm != "n":
-        user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
-    if user_confirm == 'n':
-        logging.info("\nOperation has been canceled!!\n")
-        ldap_session.unbind()
-        exit(0)
-    else:
+    if ask_user_confirmation():
         ldap_session.delete_s(delete_dn)
         logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
-        ldap_session.unbind()
+    logging.info("\n\nClosing connection!\n")
+    ldap_session.unbind()
 
 if __name__ == "__main__":
     main()
