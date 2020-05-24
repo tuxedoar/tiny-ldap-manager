@@ -81,7 +81,7 @@ def main():
             exit(0)
     except (KeyboardInterrupt, ldap.SERVER_DOWN, ldap.UNWILLING_TO_PERFORM, \
             ldap.INVALID_CREDENTIALS, ldap.INVALID_DN_SYNTAX, \
-            ldap.NO_SUCH_OBJECT, ldap.ALREADY_EXISTS) as e:
+            ldap.NO_SUCH_OBJECT) as e:
             exit(e)
 
 
