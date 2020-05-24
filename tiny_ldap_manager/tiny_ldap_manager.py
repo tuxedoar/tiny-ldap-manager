@@ -19,6 +19,8 @@ import argparse
 import logging
 import getpass
 from sys import exit
+import csv
+from ast import literal_eval
 import ldap
 import ldap.modlist as modlist
 
@@ -46,6 +48,11 @@ def main():
     ldap_modify.add_argument('-M', '--modifymode', nargs='?', type=str, \
             default='REPLACE', \
             help="Change operation mode for modifying an attribute")
+    # Add LDAP entries from a CSV file!
+    ldap_add_entry = subparser.add_parser('add', help="Add LDAP entries from a " \
+    "CSV file")
+    ldap_add_entry.add_argument('csvfile', \
+            help='CSV file to import LDAP entries from')
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
@@ -57,6 +64,9 @@ def main():
         if args.action == "ls":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
+        elif args.action == "add":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_add_entry.set_defaults(func=ldap_action_add_entry(ldap_session, args.csvfile))
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
@@ -71,7 +81,7 @@ def main():
             exit(0)
     except (KeyboardInterrupt, ldap.SERVER_DOWN, ldap.UNWILLING_TO_PERFORM, \
             ldap.INVALID_CREDENTIALS, ldap.INVALID_DN_SYNTAX, \
-            ldap.NO_SUCH_OBJECT) as e:
+            ldap.NO_SUCH_OBJECT, ldap.ALREADY_EXISTS) as e:
             exit(e)
 
 
@@ -188,6 +198,84 @@ def ldap_action_delete(ldap_session, delete_dn):
         logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
+
+
+def check_csv_literals(element):
+    """ Recognize non-str Python objects when reading from CSV """
+    # It seems that, when reading from a CSV file, Python treats everything as
+    # string. This is a workaround so that it treats native Python objects as
+    # such. This is mainly aimed at Python lists, since some LDAP attributes,
+    # can have more than one value (ie: 'objectCLass')!. 
+    try:
+        element = literal_eval(element)
+    except(SyntaxError, ValueError):
+        pass
+    return element
+
+
+def read_csv(csv_file):
+    """ Read entries from CSV file """
+    entries = []
+    try:
+        logging.info("Opening CSV file: %s\n\n", csv_file)
+        with open(csv_file, 'r') as f:
+            # csv.DictReader() returns an OrederedDict object
+            csv_reader = csv.DictReader(f, delimiter=';')
+            for entry in csv_reader:
+                each_entry = {}
+                # Convert it to a normal dict!
+                entry = dict(entry)
+                entries.append(entry)
+        return entries
+    except IOError:
+        logging.critical("Can't read %s file. Make sure it exist!\n", csv_file)
+        exit(0)
+
+
+def process_each_csv_entry(csv_entry):
+    """ Process each CSV entry """
+    # Each csv_entry is a dict, which contains the attributes of each LDAP
+    # entry to be added, PLUS, the DN!. The 'ldapdata' list, stores the dn and
+    # the attributes as separate elements inside a tuple. 
+    ldapdata = []
+    entry_dn = csv_entry['dn']
+    # Since we don't want the dn as part of the attributes, let's remove it
+    if 'dn' in csv_entry:
+        del csv_entry['dn']
+
+    for key, value in csv_entry.items():
+        value = check_csv_literals(value)
+        # Convert the attribute's value to a byte string! 
+        value = value.encode('utf-8')
+        # Since we can have a Python list inside a CSV entry, we want to keep
+        # it as it is. However, if it's not a list, we convert each element to
+        # be one! (this is later required for the 'add_s' method of python-ldap). 
+        if isinstance(value, list):
+            csv_entry[key] = value
+        else:
+            csv_entry[key] = [value]
+
+    ldapdata.append((entry_dn, csv_entry))
+    return ldapdata
+
+
+def ldap_action_add_entry(ldap_session, csv_file):
+    "Add LDAP entries from CSV"
+    csv_entries = read_csv(csv_file)
+
+    ldapdata = [process_each_csv_entry(i) for i in csv_entries]
+    for content in ldapdata:
+        dn = content[0][0]
+        attributes = content[0][1]
+        ldif = modlist.addModlist(attributes)
+        try:
+            ldap_session.add_s(dn,ldif)
+            logging.info("Adding LDAP entry: %s", dn)
+        except ldap.ALREADY_EXISTS:
+            logging.warning("Failed to add entry: %s. Already exists!", dn)
+    logging.info("\n\nClosing connection!\n")
+    ldap_session.unbind()
+
 
 if __name__ == "__main__":
     main()
