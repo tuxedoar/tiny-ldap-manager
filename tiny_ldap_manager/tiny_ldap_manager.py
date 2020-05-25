@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from tlmgr_core import retrieve_attrs_from_dn
 from tlmgr_core import ask_user_confirmation
 from tlmgr_modify import ldap_replace_attr
 from tlmgr_modify import ldap_add_attr
@@ -114,13 +115,6 @@ def ldap_action_ls(ldap_session, basedn):
         else:
             print("{}:\t{}".format(key, value[0].decode()))
     ldap_session.unbind()
-
-
-def retrieve_attrs_from_dn(ldap_session, basedn):
-    """ Retrieve attributes from given DN """
-    ldap_data = ldap_session.search_s(basedn, ldap.SCOPE_BASE, 'objectClass=*')
-    attrs = [i[1] for i in ldap_data]
-    return attrs
 
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
