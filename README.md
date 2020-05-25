@@ -11,7 +11,7 @@ More precisely, this program, allows you to:
  from a CSV file!.
  * Query the LDAP attributes of a particular entry, based on its DN. 
 
-For the time being, there some features that I've planned, that aren't yet
+At present, there are some features that I've planned, that aren't yet
 implemented. Hopefully, I'll do so in future releases!. 
 
 ## Requirements
