@@ -83,6 +83,7 @@ For modifying or adding an attribute to an LDAP entry, you logically use the
  attribute!.
  * `ADD` is for adding a non-existing attribute!.
  * `DELETE` is, of course, for deleting an existing attribute!. 
+
 By default, note that the `REPLACE` mode is used, if you don't provide any
 additional arguments!. The complete syntax is:
 ```
