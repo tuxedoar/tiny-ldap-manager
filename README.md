@@ -81,8 +81,31 @@ For modifying or adding an attribute to an LDAP entry, you logically use the
 `modify` action. There are three types of modifications possible to use:
  * `REPLACE` is to be used whenever you want to modify the value of an existing
  attribute!.
- * `ADD` is for adding an non-existing attribute!.
+ * `ADD` is for adding a non-existing attribute!.
  * `DELETE` is, of course, for deleting an existing attribute!. 
+By default, note that the `REPLACE` mode is used, if you don't provide any
+additional arguments!. The complete syntax is:
+```
+tiny-ldap-manager [SERVER] [USERDN] modify [ATTRIBUTE] [VALUE] 
+```
+Where `[ATTRIBUTE]` is the name of the *attribute* you want to modify, and
+`[VALUE]` is the *new value* for that *attribute*!.
+
+Let's see an example:
+```
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" modify "uid=joe,ou=people,dc=somecorp,dc=com" telephoneNumber "5555" 
+```
+Above, we're modifying the `telephoneNumber` attribute with a new value of
+`5555`.
+
+Make sure that the new value for the attribute you're modifying, is NOT the
+same as its current value!. Otherwise, it'll fail!.
+
+For using any of the other types of modifications, you've to do so with the `-M`
+argument, as follows: 
+```
+tiny-ldap-manager
+```
 
 #### Adding entries to your LDAP
 
