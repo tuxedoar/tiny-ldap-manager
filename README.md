@@ -70,8 +70,19 @@ In order of appearance:
 ### Performing different LDAP operations
 
 #### Listing attributes of an LDAP entry
+The `ls` action, allows you to quickly see the attributes of a particular LDAP
+entry. For this, you have to provide the DN of the latter. For example:
+```
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" ls "uid=joe,ou=people,dc=somecorp,dc=com"
+```
 
 #### Modifying an attribute of an LDAP entry
+For modifying or adding an attribute to an LDAP entry, you logically use the
+`modify` action. There are three types of modifications possible to use:
+ * `REPLACE` is to be used whenever you want to modify the value of an existing
+ attribute!.
+ * `ADD` is for adding an non-existing attribute!.
+ * `DELETE` is, of course, for deleting an existing attribute!. 
 
 #### Adding entries to your LDAP
 
