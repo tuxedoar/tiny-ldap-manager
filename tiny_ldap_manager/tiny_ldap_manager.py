@@ -130,7 +130,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
         attrs[0].get(attr) and \
         attrs[0][attr][0].decode() == new_value[0].decode():
         logging.critical("\nERROR: Existing value for attribute %s and the " \
-        "provided one, can't be the same!\n", attr)
+        "new one, can't be the same!\n", attr)
     # Modify the existing attribute
     elif add_mode == 'REPLACE' and attrs[0].get(attr):
         ldap_replace_attr(ldap_session, attrs, attr, dn, new_value)
@@ -151,8 +151,8 @@ def ldap_action_delete(ldap_session, delete_dn):
     """ Delete an LDAP entry based on DN """
     logging.info("\nWARNING: you are about to delete the " \
     "following LDAP entry:\n\n %s\n", delete_dn)
-    logging.info("\n##### This operation IS NOT REVERSIBLE!!!. " \
-    "ALWAYS have a working backup first! #####\n")
+    logging.info("\n##### Please, remember to have a working BACKUP of your " \
+    "LDAP database, prior to ANY modification!! #####\n")
     if ask_user_confirmation():
         ldap_session.delete_s(delete_dn)
         logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
@@ -174,7 +174,7 @@ def ldap_action_add_entry(ldap_session, csv_file):
             ldap_session.add_s(dn,ldif)
             logging.info("Adding LDAP entry: %s", dn)
         except ldap.ALREADY_EXISTS:
-            logging.warning("Failed to add entry: %s. Already exists!", dn)
+            logging.warning("Failed to add LDAP entry: %s. Already exists!", dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
