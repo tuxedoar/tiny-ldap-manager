@@ -60,7 +60,6 @@ def main():
     args = parser.parse_args()
 
     try:
-        #if args.action != None:
         if args.action == "ls":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
@@ -104,7 +103,12 @@ def ldap_action_ls(ldap_session, basedn):
     logging.info("\nShowing  attributes for %s:\n\n", basedn)
     attrs = retrieve_attrs_from_dn(ldap_session, basedn)
     for key, value in attrs[0].items():
-        print("{}:\t{}".format(key, value[0].decode()))
+        # Deal with attributes with multiple values!
+        if len(value) > 1:
+            for v in value:
+                print("{}:\t{}".format(key, v.decode()))
+        else:
+            print("{}:\t{}".format(key, value[0].decode()))
     ldap_session.unbind()
 
 
@@ -245,14 +249,16 @@ def process_each_csv_entry(csv_entry):
 
     for key, value in csv_entry.items():
         value = check_csv_literals(value)
-        # Convert the attribute's value to a byte string! 
-        value = value.encode('utf-8')
         # Since we can have a Python list inside a CSV entry, we want to keep
         # it as it is. However, if it's not a list, we convert each element to
         # be one! (this is later required for the 'add_s' method of python-ldap). 
         if isinstance(value, list):
+            # Encode each element to a byte str if a list object is found.
+            value = [i.encode('utf-8') for i in value]
             csv_entry[key] = value
         else:
+            # Convert the attribute's value to a byte string!
+            value = value.encode('utf-8')
             csv_entry[key] = [value]
 
     ldapdata.append((entry_dn, csv_entry))
@@ -268,6 +274,7 @@ def ldap_action_add_entry(ldap_session, csv_file):
         dn = content[0][0]
         attributes = content[0][1]
         ldif = modlist.addModlist(attributes)
+
         try:
             ldap_session.add_s(dn,ldif)
             logging.info("Adding LDAP entry: %s", dn)
