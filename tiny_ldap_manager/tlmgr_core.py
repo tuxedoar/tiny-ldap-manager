@@ -1,4 +1,6 @@
-# Core helper functions
+# Core helper functions for tiny-ldap-manager
+
+import ldap
 
 def ask_user_confirmation():
     """ Ask for user confirmation """
@@ -11,3 +13,10 @@ def ask_user_confirmation():
     else:
         user_confirm = True
     return user_confirm
+
+
+def retrieve_attrs_from_dn(ldap_session, basedn):
+    """ Retrieve attributes from a given DN """
+    ldap_data = ldap_session.search_s(basedn, ldap.SCOPE_BASE, 'objectClass=*')
+    attrs = [i[1] for i in ldap_data]
+    return attrs
