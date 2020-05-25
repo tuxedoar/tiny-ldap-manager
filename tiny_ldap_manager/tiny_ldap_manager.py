@@ -20,12 +20,12 @@ from tlmgr_core import ask_user_confirmation
 from tlmgr_modify import ldap_replace_attr
 from tlmgr_modify import ldap_add_attr
 from tlmgr_modify import ldap_delete_attr
+from tlmgr_csv import read_csv
+from tlmgr_csv import process_each_csv_entry
 import argparse
 import logging
 import getpass
 from sys import exit
-import csv
-from ast import literal_eval
 import ldap
 import ldap.modlist as modlist
 
@@ -158,67 +158,6 @@ def ldap_action_delete(ldap_session, delete_dn):
         logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
-
-
-def check_csv_literals(element):
-    """ Recognize non-str Python objects when reading from CSV """
-    # It seems that, when reading from a CSV file, Python treats everything as
-    # string. This is a workaround so that it treats native Python objects as
-    # such. This is mainly aimed at Python lists, since some LDAP attributes,
-    # can have more than one value (ie: 'objectCLass')!. 
-    try:
-        element = literal_eval(element)
-    except(SyntaxError, ValueError):
-        pass
-    return element
-
-
-def read_csv(csv_file):
-    """ Read entries from CSV file """
-    entries = []
-    try:
-        logging.info("Opening CSV file: %s\n\n", csv_file)
-        with open(csv_file, 'r') as f:
-            # csv.DictReader() returns an OrederedDict object
-            csv_reader = csv.DictReader(f, delimiter=';')
-            for entry in csv_reader:
-                each_entry = {}
-                # Convert it to a normal dict!
-                entry = dict(entry)
-                entries.append(entry)
-        return entries
-    except IOError:
-        logging.critical("Can't read %s file. Make sure it exist!\n", csv_file)
-        exit(0)
-
-
-def process_each_csv_entry(csv_entry):
-    """ Process each CSV entry """
-    # Each csv_entry is a dict, which contains the attributes of each LDAP
-    # entry to be added, PLUS, the DN!. The 'ldapdata' list, stores the dn and
-    # the attributes as separate elements inside a tuple. 
-    ldapdata = []
-    entry_dn = csv_entry['dn']
-    # Since we don't want the dn as part of the attributes, let's remove it
-    if 'dn' in csv_entry:
-        del csv_entry['dn']
-
-    for key, value in csv_entry.items():
-        value = check_csv_literals(value)
-        # Since we can have a Python list inside a CSV entry, we want to keep
-        # it as it is. However, if it's not a list, we convert each element to
-        # be one! (this is later required for the 'add_s' method of python-ldap). 
-        if isinstance(value, list):
-            # Encode each element to a byte str if a list object is found.
-            value = [i.encode('utf-8') for i in value]
-            csv_entry[key] = value
-        else:
-            # Convert the attribute's value to a byte string!
-            value = value.encode('utf-8')
-            csv_entry[key] = [value]
-
-    ldapdata.append((entry_dn, csv_entry))
-    return ldapdata
 
 
 def ldap_action_add_entry(ldap_session, csv_file):
