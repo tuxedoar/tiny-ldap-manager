@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from tlmgr_core import ask_user_confirmation
+from tlmgr_modify import ldap_replace_attr
+from tlmgr_modify import ldap_add_attr
+from tlmgr_modify import ldap_delete_attr
 import argparse
 import logging
 import getpass
@@ -119,48 +123,6 @@ def retrieve_attrs_from_dn(ldap_session, basedn):
     return attrs
 
 
-def ldap_modify_replace_mode(ldap_session, attrs, attr, dn, new_value):
-    """ Replace an existing LDAP attribute's value """
-    # Do the actual operation!
-    current_attr = attrs[0][attr]
-    old = {attr:current_attr}
-    new = {attr:new_value}
-    ldif = modlist.modifyModlist(old,new)
-    ldap_session.modify_s(dn, ldif)
-    logging.info("\nAttribute %s value has been changed:\n\n" \
-    " Previous value: %s\n New value: %s\n" \
-    , attr, current_attr[0].decode(), new_value[0].decode())
-
-
-def ldap_modify_add_mode(ldap_session, dn, attr, value):
-    """ Add attribute in LDAP entry if NOT exists  """
-    new_attr = [(ldap.MOD_ADD, attr, value)]
-    ldap_session.modify_s(dn, new_attr)
-    logging.info("A new attribute has been added:\n\n %s: %s\n", \
-                attr, value[0].decode())
-
-
-def ask_user_confirmation():
-    """ Ask for user confirmation """
-    user_confirm = str(input("Are you sure you wanna proceed? (YES/n)"))
-    while user_confirm != "YES" and user_confirm != "n":
-        user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
-    if user_confirm == 'n':
-        logging.info("\nOperation has been canceled!!\n")
-        user_confirm = False
-    else:
-        user_confirm = True
-    return user_confirm
-
-
-def ldap_modify_delete_mode(ldap_session, dn, attr):
-    """ Delete an attribute from LDAP entry """
-    logging.info("The following attribute from %s will be removed:\n\n%s\n", dn, attr)
-    if ask_user_confirmation():
-        ldap_session.modify_s(dn, [(ldap.MOD_DELETE, attr, None)])
-        logging.info("\nLDAP attribute %s has been removed!!\n", attr)
-
-
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
     logging.info("\nPerforming an attribute modification in %s!\n", dn)
@@ -177,12 +139,12 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
         "provided one, can't be the same!\n", attr)
     # Modify the existing attribute
     elif add_mode == 'REPLACE' and attrs[0].get(attr):
-        ldap_modify_replace_mode(ldap_session, attrs, attr, dn, new_value)
+        ldap_replace_attr(ldap_session, attrs, attr, dn, new_value)
     # Create the given attribute if ADD mode is set! 
     elif add_mode == 'ADD' and not attrs[0].get(attr):
-        ldap_modify_add_mode(ldap_session, dn, attr, new_value)
+        ldap_add_attr(ldap_session, dn, attr, new_value)
     elif add_mode == 'DELETE' and attrs[0].get(attr):
-        ldap_modify_delete_mode(ldap_session, dn, attr)
+        ldap_delete_attr(ldap_session, dn, attr)
     else:
         logging.critical("\nERROR: Invalid modify mode or conflict exists " \
         "in DN %s with attribute %s!.\n Please, verify and try again!\n", \
