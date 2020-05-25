@@ -54,9 +54,9 @@ The basic syntax you've to respect is the following:
 ```
 tiny-ldap-manager [SERVER] [BINDDN] [ACTION] [ARGUMENTS]
 ```
-In order of appereance:
+In order of appearance:
  * `[SERVER]` belongs to the URI formatted address of your LDAP server. This
- argumentis mandatory!.
+ arguments mandatory!.
  * `[BINDDN]` is the *DN* (*"Distinguished Name"*) of the LDAP user with
  permissions for the operation you wish to perform!. It's a mandatory argument!.
  * `[ACTION]` is the actual operation you want to perform. At present, there
