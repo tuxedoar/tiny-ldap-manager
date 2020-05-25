@@ -63,9 +63,19 @@ In order of appearance:
  are four valid operations you can use: `ls`, `modify`, `add` or `delete`. This
  argument is also mandatory and you must provide ONLY one of them!. Please, see
  below for more details.
- * `[ARGUMENTS]`: when you perform an *ACTION*, any of them requires, at least, one
+ * `[ARGUMENTS]`: when you perform an `[ACTION]`, any of them requires, at least, one
  or more additional arguments. You can add the `--help` argument to any of
  them, for specific details. Please, see below for more on this.
+
+### Performing different LDAP operations
+
+#### Listing attributes of an LDAP entry
+
+#### Modifying an attribute of an LDAP entry
+
+#### Adding entries to your LDAP
+
+#### Deleting an entry from your LDAP
 
 ## License
 This program is distributed under the GPLv3 license.
