@@ -10,7 +10,8 @@ More precisely, this program, allows you to:
  * Add LDAP entries with their corresponding *attributes*, by importing them
  from a CSV file!.
  * Query the LDAP attributes of a particular entry, based on its DN. 
-
+For the time being, there some features that I've planned, that aren't yet
+implemented. Hopefully, I'll do so in future releases!. 
 ## Requirements
 This is what it needs, in order to work:
  * [Python 3](https://www.python.org/downloads/)
@@ -21,14 +22,12 @@ with *v3.2.0*).
 I don't take any responsibility on the consequences of the usage of this
 program!. Use it at your own risk!!.
 
-As you might know, making changes on your LDAP server can, certainly,
-break things!. Therefore, you should always have a working backup of your
-LDAP database, prior to ANY modification!.
+It's advisable to always have a working backup of your LDAP database, prior to
+ANY modification!.
 
 ## Installation
 
 ## Usage
 
 ## License
-This program is distributed under the GPLv3 terms. Please, see the LICENSE file
-for more details.
+This program is distributed under the GPLv3 license.
