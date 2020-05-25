@@ -1,5 +1,6 @@
 # Core helper functions for tiny-ldap-manager
 
+import logging
 import ldap
 
 def ask_user_confirmation():
