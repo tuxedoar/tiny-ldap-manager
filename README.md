@@ -96,11 +96,11 @@ Let's see an example:
 ```
 tiny-ldap-manager ldap://192.168.100.5 "cn=config" modify "uid=joe,ou=people,dc=somecorp,dc=com" telephoneNumber "5555" 
 ```
-Above, we're modifying the `telephoneNumber` attribute with a new value of
-`5555`.
+Above, we're modifying the existing `telephoneNumber` attribute with a new value
+of`5555`.
 
 Make sure that the new value for the attribute you're modifying, is NOT the
-same as its current value!. Otherwise, it'll fail!.
+same as its current value!. Otherwise, you'll get an error!.
 
 For using any of the other types of modifications, you've to do so with the `-M`
 argument, as follows: 
