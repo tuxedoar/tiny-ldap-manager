@@ -21,6 +21,7 @@ import logging
 import getpass
 import ldap
 import ldap.modlist as modlist
+from _version import __version__
 from tlmgr_core import retrieve_attrs_from_dn
 from tlmgr_core import ask_user_confirmation
 from tlmgr_modify import ldap_replace_attr
@@ -39,6 +40,9 @@ def main():
         description="Easily perform several LDAP operations")
     parser.add_argument('SERVER', help='URI formatted address of the LDAP server')
     parser.add_argument('BINDDN', help='DN of the user to bind the LDAP server')
+    parser.add_argument('-v', '--version', action='version', \
+    version="%(prog)s {version}".format(version=__version__), \
+    help='Show current version')
     # LDAP subparser for operations available to perform
     subparser = parser.add_subparsers(dest='action')
     # List LDAP attributes from DN!
