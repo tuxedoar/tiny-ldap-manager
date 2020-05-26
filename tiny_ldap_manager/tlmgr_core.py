@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Core helper functions for tiny-ldap-manager
+""" Core helper functions for tiny-ldap-manager """
 
 import logging
 import ldap
@@ -23,7 +23,7 @@ import ldap
 def ask_user_confirmation():
     """ Ask for user confirmation """
     user_confirm = str(input("Are you sure you wanna proceed? (YES/n)"))
-    while user_confirm != "YES" and user_confirm != "n":
+    while user_confirm not in("YES", "n"):
         user_confirm = str(input("Not a valid answer!. Proceed? (YES/n)"))
     if user_confirm == 'n':
         logging.info("\nOperation has been canceled!!\n")

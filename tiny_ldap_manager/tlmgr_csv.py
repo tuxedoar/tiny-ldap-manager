@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# CSV handling helper functions for tiny-ldap-manager
+""" CSV handling helper functions for tiny-ldap-manager """
 
 from sys import exit
 from ast import literal_eval
@@ -31,7 +31,7 @@ def read_csv(csv_file):
             # csv.DictReader() returns an OrederedDict object
             csv_reader = csv.DictReader(f, delimiter=';')
             for entry in csv_reader:
-                each_entry = {}
+                #each_entry = {}
                 # Convert it to a normal dict!
                 entry = dict(entry)
                 entries.append(entry)
@@ -58,7 +58,7 @@ def process_each_csv_entry(csv_entry):
     """ Process each CSV entry """
     # Each csv_entry is a dict, which contains the attributes of each LDAP
     # entry to be added, PLUS, the DN!. The 'ldapdata' list, stores the dn and
-    # the attributes as separate elements inside a tuple. 
+    # the attributes as separate elements inside a tuple.
     ldapdata = []
     entry_dn = csv_entry['dn']
     # Since we don't want the dn as part of the attributes, let's remove it
@@ -69,7 +69,7 @@ def process_each_csv_entry(csv_entry):
         value = check_csv_literals(value)
         # Since we can have a Python list inside a CSV entry, we want to keep
         # it as it is. However, if it's not a list, we convert each element to
-        # be one! (this is later required for the 'add_s' method of python-ldap). 
+        # be one! (this is later required for the 'add_s' method of python-ldap).
         if isinstance(value, list):
             # Encode each element to a byte str if a list object is found.
             value = [i.encode('utf-8') for i in value]
@@ -81,5 +81,3 @@ def process_each_csv_entry(csv_entry):
 
     ldapdata.append((entry_dn, csv_entry))
     return ldapdata
-
-

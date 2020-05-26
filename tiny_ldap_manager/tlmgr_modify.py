@@ -15,12 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Helper functions for the 'modify' functionality of tiny-ldap-manager
+""" Helper functions for the 'modify' LDAP related operations """
 
-from tlmgr_core import ask_user_confirmation
-import ldap.modlist as modlist
-import ldap
 import logging
+import ldap
+import ldap.modlist as modlist
+from tlmgr_core import ask_user_confirmation
+
 
 def ldap_replace_attr(ldap_session, attrs, attr, dn, new_value):
     """ Replace an existing LDAP attribute's value """
@@ -28,7 +29,7 @@ def ldap_replace_attr(ldap_session, attrs, attr, dn, new_value):
     current_attr = attrs[0][attr]
     old = {attr:current_attr}
     new = {attr:new_value}
-    ldif = modlist.modifyModlist(old,new)
+    ldif = modlist.modifyModlist(old, new)
     ldap_session.modify_s(dn, ldif)
     logging.info("\nAttribute %s value has been changed:\n\n" \
     " Previous value: %s\n New value: %s\n" \
