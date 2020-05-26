@@ -31,7 +31,6 @@ def read_csv(csv_file):
             # csv.DictReader() returns an OrederedDict object
             csv_reader = csv.DictReader(f, delimiter=';')
             for entry in csv_reader:
-                #each_entry = {}
                 # Convert it to a normal dict!
                 entry = dict(entry)
                 entries.append(entry)
