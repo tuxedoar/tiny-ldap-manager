@@ -15,6 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from sys import exit
+import argparse
+import logging
+import getpass
+import ldap
+import ldap.modlist as modlist
 from tlmgr_core import retrieve_attrs_from_dn
 from tlmgr_core import ask_user_confirmation
 from tlmgr_modify import ldap_replace_attr
@@ -22,12 +28,7 @@ from tlmgr_modify import ldap_add_attr
 from tlmgr_modify import ldap_delete_attr
 from tlmgr_csv import read_csv
 from tlmgr_csv import process_each_csv_entry
-import argparse
-import logging
-import getpass
-from sys import exit
-import ldap
-import ldap.modlist as modlist
+
 
 def main():
     """ Menu arguments handling """
@@ -85,8 +86,8 @@ def main():
             exit(0)
     except (KeyboardInterrupt, ldap.SERVER_DOWN, ldap.UNWILLING_TO_PERFORM, \
             ldap.INVALID_CREDENTIALS, ldap.INVALID_DN_SYNTAX, \
-            ldap.NO_SUCH_OBJECT) as e:
-            exit(e)
+        ldap.NO_SUCH_OBJECT) as e:
+        exit(e)
 
 
 def start_ldap_session(server, binddn):
@@ -121,7 +122,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
     logging.info("\nPerforming an attribute modification in %s!\n", dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
-    # Encode attribute's new value to byte strings 
+    # Encode attribute's new value to byte strings
     new_value = [new_value.encode('utf-8')]
 
     # Valid modify modes are: REPLACE, ADD, DELETE
@@ -134,7 +135,7 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     # Modify the existing attribute
     elif add_mode == 'REPLACE' and attrs[0].get(attr):
         ldap_replace_attr(ldap_session, attrs, attr, dn, new_value)
-    # Create the given attribute if ADD mode is set! 
+    # Create the given attribute if ADD mode is set!
     elif add_mode == 'ADD' and not attrs[0].get(attr):
         ldap_add_attr(ldap_session, dn, attr, new_value)
     elif add_mode == 'DELETE' and attrs[0].get(attr):
@@ -171,7 +172,7 @@ def ldap_action_add_entry(ldap_session, csv_file):
         ldif = modlist.addModlist(attributes)
 
         try:
-            ldap_session.add_s(dn,ldif)
+            ldap_session.add_s(dn, ldif)
             logging.info("Adding LDAP entry: %s", dn)
         except ldap.ALREADY_EXISTS:
             logging.warning("Failed to add LDAP entry: %s. Already exists!", dn)
