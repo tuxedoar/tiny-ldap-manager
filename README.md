@@ -80,12 +80,13 @@ tiny-ldap-manager ldap://192.168.100.5 "cn=config" ls "uid=joe,ou=people,dc=some
 For modifying or adding an attribute to an LDAP entry, you logically use the
 `modify` action. There are three types of modifications possible to use:
  * `REPLACE` is to be used whenever you want to modify the value of an existing
- attribute!.
+ attribute. This is the mode **used by default**!.
  * `ADD` is for adding a non-existing attribute!.
  * `DELETE` is, of course, for deleting an existing attribute!. 
 
-By default, note that the `REPLACE` mode is used, if you don't provide any
-additional arguments!. The complete syntax is:
+##### REPLACE mode
+If you don't provide any additional arguments, the `REPLACE` mode is used by
+default!. The complete syntax for it, is:
 ```
 tiny-ldap-manager [SERVER] [USERDN] modify [ATTRIBUTE] [VALUE] 
 ```
@@ -102,15 +103,28 @@ of`5555`.
 Make sure that the new value for the attribute you're modifying, is NOT the
 same as its current value!. Otherwise, you'll get an error!.
 
-For using any of the other types of modifications, you've to do so with the `-M`
-argument, as follows: 
+##### ADD mode
+In order to use a different mode for making a modification, you've to do it
+using the `-M` argument, as follows: 
 ```
-tiny-ldap-manager
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" modify -M ADD "uid=willy,ou=people,dc=somecorp,dc=com" telephoneNumber "8006666"
 ```
+With this latter example, we add the `telephoneNumber` attribute, with its
+corresponding value. 
+
+It's important to note that this program is *case-sensitive*, so the
+*modification mode* always goes with capital letters!.
+
+##### DELETE mode
+Finally, an example for using the `DELETE` mode, for removing an existing LDAP attribute:
+```
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" modify -M DELETE "uid=charles,ou=people,dc=somecorp,dc=com" telephoneNumber ""
+```
+Note that the *double quotes* at the end of the command, **are necessary!**.
 
 #### Adding entries to your LDAP
 
 #### Deleting an entry from your LDAP
 
 ## License
-This program is distributed under the GPLv3 license.
+This software is distributed under the GPLv3 license.
