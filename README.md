@@ -134,7 +134,7 @@ Note that the *double quotes* at the end of the command, **are necessary!**.
 #### Adding entries to your LDAP
 The way to add entries to an LDAP database with `tiny-ldap-manager`, is by
 creating a CSV file using the header row (first row), to specify the attributes
-for each new entry. You must ensure that you use a *semi-colon* as the CSV
+for each new entry. You must ensure that you use a *semi-colon* (`;`) as the CSV
 delimiter!.
 
 Besides the CSV *header row*, the rest of them, are to be used to define the
