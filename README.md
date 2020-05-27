@@ -32,7 +32,7 @@ ANY modification!.
 ## Usage
 To start with, here's the help output:
 ```
-usage: tiny-ldap-manager.py [-h] SERVER BINDDN {ls,modify,add,delete} ...
+usage: tiny-ldap-manager [-h] [-v] SERVER BINDDN {ls,modify,add,delete} ...
 
 Easily perform several LDAP operations
 
@@ -47,7 +47,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-
+  -v, --version         Show current version
 ```
 ### Basic syntax
 The basic syntax you've to respect is the following:
@@ -68,6 +68,11 @@ In order of appearance:
  them, for specific details. Please, see below for more on this.
 
 ### Performing different LDAP operations
+
+#### Authentication
+Take into account that, an *authenticated session* is always assumed. So you are
+gonna be asked for the corresponding credentials, each time you perform an
+operation!.
 
 #### Listing attributes of an LDAP entry
 The `ls` action, allows you to quickly see the attributes of a particular LDAP
@@ -123,8 +128,47 @@ tiny-ldap-manager ldap://192.168.100.5 "cn=config" modify -M DELETE "uid=charles
 Note that the *double quotes* at the end of the command, **are necessary!**.
 
 #### Adding entries to your LDAP
+The way to add entries to an LDAP database with `tiny-ldap-manager`, is by
+creating a CSV file using the header row (first row), to specify the attributes
+for each new entry. You must ensure that you use a *semi-colon* as the CSV
+delimiter!.
+
+Besides the CSV *header row*, the rest of them, are to be used to define the
+value of each corresponding attribute.
+
+The order in which the LDAP attributes are specified in the CSV file, is not
+important, as long as there is a logical correlation between the *value* assigned
+to each *attribute* and the *attribute* itself!. Even then, for the sake of
+clarity, it's a good idea to always put the DN in the first place!.
+
+Now, let's see an example of a CSV file content:
+```
+dn;objectClass;uid;cn;sn;givenName;displayName;mail
+uid=cdarwin,ou=people,dc=scileague,dc=org;['inetOrgPerson','organizationalPerson'];cdarwin;cdarwin;Darwin;Charles;Charles Darwin;charlesdarwin@scileague.org
+uid=alovelace,ou=people,dc=scileague,dc=org;inetOrgPerson;alovelace;alovelace;Lovelace;Ada;Ada Lovelace;adalovelace@scileague.org
+uid=aeinstein,ou=people,dc=scileague,dc=org;inetOrgPerson;aeinstein;aeinstein;Einstein;Albert;Albert Einstein;alberteinstein@scileague.org
+```
+The following is how you would import such entries:
+```
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" add scileague.csv
+```
+
+As you might noticed in the CSV, the entry that belongs to *Charles Darwin*, has
+a *formatted list* of *values* for the `objectClass` *attribute*. That's a
+supported way to include more than one *value* for a given *attribute*.
+
+As a final note about importing new LDAP entries, if one or many of them, already
+exist in the LDAP database, you can be sure that they won't be imported, but 
+equally important, is the fact that they won't interrupt the whole process
+neither. An output message is shown in each case.    
 
 #### Deleting an entry from your LDAP
+You can simply remove an LDAP entry from your database, by indicating its DN,
+as is shown next:
+```
+tiny-ldap-manager ldap://192.168.100.5 "cn=config" delete "uid=bob,ou=people,dc=somecorp,dc=com"
+```
+Poor Bob!. :)
 
 ## License
 This software is distributed under the GPLv3 license.
