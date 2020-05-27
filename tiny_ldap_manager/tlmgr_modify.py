@@ -20,7 +20,7 @@
 import logging
 import ldap
 import ldap.modlist as modlist
-from tlmgr_core import ask_user_confirmation
+from tiny_ldap_manager.tlmgr_core import ask_user_confirmation
 
 
 def ldap_replace_attr(ldap_session, attrs, attr, dn, new_value):
