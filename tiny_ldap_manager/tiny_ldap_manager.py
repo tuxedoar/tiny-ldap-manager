@@ -22,13 +22,13 @@ import getpass
 import ldap
 import ldap.modlist as modlist
 from _version import __version__
-from tlmgr_core import retrieve_attrs_from_dn
-from tlmgr_core import ask_user_confirmation
-from tlmgr_modify import ldap_replace_attr
-from tlmgr_modify import ldap_add_attr
-from tlmgr_modify import ldap_delete_attr
-from tlmgr_csv import read_csv
-from tlmgr_csv import process_each_csv_entry
+from tiny_ldap_manager.tlmgr_core import retrieve_attrs_from_dn
+from tiny_ldap_manager.tlmgr_core import ask_user_confirmation
+from tiny_ldap_manager.tlmgr_modify import ldap_replace_attr
+from tiny_ldap_manager.tlmgr_modify import ldap_add_attr
+from tiny_ldap_manager.tlmgr_modify import ldap_delete_attr
+from tiny_ldap_manager.tlmgr_csv import read_csv
+from tiny_ldap_manager.tlmgr_csv import process_each_csv_entry
 
 
 def main():
