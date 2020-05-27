@@ -28,6 +28,10 @@ It's advisable to always have a working backup of your LDAP database, prior to
 ANY modification!.
 
 ## Installation
+The recommended way to install this program, is by using `pip`:
+```
+pip install tiny-ldap-manager
+```
 
 ## Usage
 To start with, here's the help output:
