@@ -128,21 +128,23 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
     # Encode attribute's new value to byte strings
     new_value = [new_value.encode('utf-8')]
+    current_attr_exists = attrs[0].get(attr)
+    new_attr_value = new_value[0].decode()
 
     # Valid modify modes are: REPLACE, ADD, DELETE
-    # Check existing attr value != new value!
-    if add_mode == 'REPLACE' and \
-        attrs[0].get(attr) and \
-        attrs[0][attr][0].decode() == new_value[0].decode():
-        logging.critical("\nERROR: Existing value for attribute %s and the " \
-        "new one, can't be the same!\n", attr)
-    # Modify the existing attribute
-    elif add_mode == 'REPLACE' and attrs[0].get(attr):
-        ldap_replace_attr(ldap_session, attrs, attr, dn, new_value)
+    if add_mode == 'REPLACE' and current_attr_exists:
+        current_attr_value = attrs[0][attr][0].decode()
+        # Check existing attr value != new value!
+        if current_attr_value == new_attr_value:
+            logging.critical("\nERROR: Existing value for attribute %s and the " \
+            "new one, can't be the same!\n", attr)
+        else:
+            # Modify the existing attribute
+            ldap_replace_attr(ldap_session, attrs, attr, dn, new_value)
     # Create the given attribute if ADD mode is set!
-    elif add_mode == 'ADD' and not attrs[0].get(attr):
+    elif add_mode == 'ADD' and not current_attr_exists:
         ldap_add_attr(ldap_session, dn, attr, new_value)
-    elif add_mode == 'DELETE' and attrs[0].get(attr):
+    elif add_mode == 'DELETE' and current_attr_exists:
         ldap_delete_attr(ldap_session, dn, attr)
     else:
         logging.critical("\nERROR: Invalid modify mode or conflict exists " \
