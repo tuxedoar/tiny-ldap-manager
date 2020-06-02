@@ -116,9 +116,9 @@ def ldap_action_ls(ldap_session, basedn):
         # Deal with attributes with multiple values!
         if len(value) > 1:
             for v in value:
-                print("{}:\t{}".format(key, v.decode()))
+                print("{:<40} :\t{}".format(key, v.decode()))
         else:
-            print("{}:\t{}".format(key, value[0].decode()))
+            print("{:<40} :\t{}".format(key, value[0].decode()))
     ldap_session.unbind()
 
 
