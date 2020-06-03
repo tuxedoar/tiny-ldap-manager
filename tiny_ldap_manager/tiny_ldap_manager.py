@@ -112,6 +112,7 @@ def ldap_action_ls(ldap_session, basedn):
     """ Show attributes for specified DN """
     logging.info("\nShowing  attributes for %s:\n\n", basedn)
     attrs = retrieve_attrs_from_dn(ldap_session, basedn)
+    logging.info("ATTRIBUTE\t\t\t\t\tVALUE\n")
     for key, value in attrs[0].items():
         # Deal with attributes with multiple values!
         if len(value) > 1:
