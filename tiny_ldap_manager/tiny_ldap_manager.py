@@ -32,10 +32,45 @@ from tiny_ldap_manager.tlmgr_csv import process_each_csv_entry
 
 
 def main():
-    """ Menu arguments handling """
+    """ Process user's arguments """
     # Setup logging
     logging.basicConfig(format='%(message)s', level=logging.INFO)
 
+    menu = menu_handler()
+    args = menu[0]
+    # Invoke sub-commands in argparse
+    ldap_ls = menu[1].choices['ls']
+    ldap_add_entry = menu[1].choices['add']
+    ldap_modify = menu[1].choices['modify']
+    ldap_delete = menu[1].choices['delete']
+
+    try:
+        if args.action == "ls":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
+        elif args.action == "add":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_add_entry.set_defaults(func=ldap_action_add_entry(ldap_session, args.csvfile))
+        elif args.action == "modify":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
+                args.modify_dn, args.target_attr, args.new_value, \
+                args.modifymode))
+        elif args.action == "delete":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
+                args.delete_dn))
+        else:
+            logging.critical("You need to provide at least one action to perform!")
+            exit(0)
+    except (KeyboardInterrupt, ldap.SERVER_DOWN, ldap.UNWILLING_TO_PERFORM, \
+            ldap.INVALID_CREDENTIALS, ldap.INVALID_DN_SYNTAX, \
+        ldap.NO_SUCH_OBJECT) as e:
+        exit(e)
+
+
+def menu_handler():
+    """ Menu arguments handling """
     parser = argparse.ArgumentParser(
         description="Easily perform several LDAP operations")
     parser.add_argument('SERVER', help='URI formatted address of the LDAP server')
@@ -68,30 +103,7 @@ def main():
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
 
     args = parser.parse_args()
-
-    try:
-        if args.action == "ls":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
-        elif args.action == "add":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_add_entry.set_defaults(func=ldap_action_add_entry(ldap_session, args.csvfile))
-        elif args.action == "modify":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
-                args.modify_dn, args.target_attr, args.new_value, \
-                args.modifymode))
-        elif args.action == "delete":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
-                args.delete_dn))
-        else:
-            logging.critical("You need to provide at least one action to perform!")
-            exit(0)
-    except (KeyboardInterrupt, ldap.SERVER_DOWN, ldap.UNWILLING_TO_PERFORM, \
-            ldap.INVALID_CREDENTIALS, ldap.INVALID_DN_SYNTAX, \
-        ldap.NO_SUCH_OBJECT) as e:
-        exit(e)
+    return args, subparser
 
 
 def start_ldap_session(server, binddn):
