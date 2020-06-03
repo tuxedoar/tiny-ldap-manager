@@ -12,7 +12,7 @@ setup(
     url='https://github.com/tuxedoar/tiny-ldap-manager',
     author='tuxedoar',
     author_email='tuxedoar@gmail.com',
-    license='GPLv3'
+    license='GPLv3',
     packages=['tiny_ldap_manager'],
     python_requires='>=3.6',
     scripts=["tiny_ldap_manager/_version.py"],
