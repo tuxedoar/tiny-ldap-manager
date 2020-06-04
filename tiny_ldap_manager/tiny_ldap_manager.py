@@ -18,10 +18,11 @@
 from sys import exit
 import argparse
 import logging
-import getpass
+#import getpass
 import ldap
 import ldap.modlist as modlist
 from _version import __version__
+from tiny_ldap_manager.tlmgr_core import start_ldap_session
 from tiny_ldap_manager.tlmgr_core import retrieve_attrs_from_dn
 from tiny_ldap_manager.tlmgr_core import ask_user_confirmation
 from tiny_ldap_manager.tlmgr_modify import ldap_replace_attr
@@ -104,20 +105,6 @@ def menu_handler():
 
     args = parser.parse_args()
     return args, subparser
-
-
-def start_ldap_session(server, binddn):
-    """ Initiate the LDAP session  """
-    ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
-    ldap.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
-    l = ldap.initialize(server, bytes_mode=False)
-    l.set_option(ldap.OPT_REFERRALS, 0)
-
-    creds = getpass.getpass('\nPlease, enter LDAP credentials for {}: '.format(binddn))
-    lsession = l.simple_bind_s(binddn, creds)
-    if lsession:
-        logging.info("\nSuccessful LDAP authentication!\n")
-    return l
 
 
 def ldap_action_ls(ldap_session, basedn):
