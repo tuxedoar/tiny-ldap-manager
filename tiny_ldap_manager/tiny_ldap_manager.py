@@ -18,7 +18,6 @@
 from sys import exit
 import argparse
 import logging
-#import getpass
 import ldap
 import ldap.modlist as modlist
 from _version import __version__
