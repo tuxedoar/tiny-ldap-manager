@@ -19,6 +19,20 @@
 
 import logging
 import ldap
+import getpass
+
+def start_ldap_session(server, binddn):
+    """ Initiate the LDAP session  """
+    ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+    ldap.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+    l = ldap.initialize(server, bytes_mode=False)
+    l.set_option(ldap.OPT_REFERRALS, 0)
+
+    creds = getpass.getpass('\nPlease, enter LDAP credentials for {}: '.format(binddn))
+    lsession = l.simple_bind_s(binddn, creds)
+    if lsession:
+        logging.info("\nSuccessful LDAP authentication!\n")
+    return l
 
 def ask_user_confirmation():
     """ Ask for user confirmation """
