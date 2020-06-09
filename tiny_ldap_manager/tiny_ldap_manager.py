@@ -103,7 +103,7 @@ def menu_handler():
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
-    # Delete LDAP entries in bulk
+    # Delete LDAP entries in bulk.
     ldap_delete.add_argument("-B", "--bulk", help="Delete LDAP entries in bulk", \
         action='store_true')
 
