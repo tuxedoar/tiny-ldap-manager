@@ -24,6 +24,8 @@ from _version import __version__
 from tiny_ldap_manager.tlmgr_core import start_ldap_session
 from tiny_ldap_manager.tlmgr_core import retrieve_attrs_from_dn
 from tiny_ldap_manager.tlmgr_core import ask_user_confirmation
+from tiny_ldap_manager.tlmgr_core import ldap_delete_single_dn
+from tiny_ldap_manager.delete_bulk import ldap_delete_bulk
 from tiny_ldap_manager.tlmgr_modify import ldap_replace_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_add_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_delete_attr
@@ -59,7 +61,7 @@ def main():
         elif args.action == "delete":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
-                args.delete_dn))
+                args.delete_dn, args.bulk))
         else:
             logging.critical("You need to provide at least one action to perform!")
             exit(0)
@@ -101,6 +103,9 @@ def menu_handler():
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
+    # Delete LDAP entries in bulk
+    ldap_delete.add_argument("-B", "--bulk", help="Delete LDAP entries in bulk", \
+        action='store_true')
 
     args = parser.parse_args()
     return args, subparser
@@ -153,15 +158,14 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     ldap_session.unbind()
 
 
-def ldap_action_delete(ldap_session, delete_dn):
-    """ Delete an LDAP entry based on DN """
-    logging.info("\nWARNING: you are about to delete the " \
-    "following LDAP entry:\n\n %s\n", delete_dn)
+def ldap_action_delete(ldap_session, delete_dn, bulk):
+    """ Delete one or more LDAP entries """
     logging.info("\n##### Please, remember to have a working BACKUP of your " \
     "LDAP database, prior to ANY modification!! #####\n")
-    if ask_user_confirmation():
-        ldap_session.delete_s(delete_dn)
-        logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
+    if bulk:
+        ldap_delete_bulk(ldap_session, delete_dn)
+    else:
+        ldap_delete_single_dn(ldap_session, delete_dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
