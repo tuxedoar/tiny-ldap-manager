@@ -29,6 +29,7 @@ from tiny_ldap_manager.delete_bulk import ldap_delete_bulk
 from tiny_ldap_manager.tlmgr_modify import ldap_replace_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_add_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_delete_attr
+from tiny_ldap_manager.tlmgr_modify import ldap_modify_bulk
 from tiny_ldap_manager.tlmgr_csv import read_csv
 from tiny_ldap_manager.tlmgr_csv import process_each_csv_entry
 
@@ -95,6 +96,9 @@ def menu_handler():
     ldap_modify.add_argument('-M', '--modifymode', nargs='?', type=str, \
             default='REPLACE', \
             help="Change operation mode for modifying an attribute")
+    # Modify LDAP attributes in bulk
+    ldap_modify.add_argument('-B', '--bulk', help='Modify attributes in bulk', \
+    action='store_true')
     # Add LDAP entries from a CSV file!
     ldap_add_entry = subparser.add_parser('add', help="Add LDAP entries from a " \
     "CSV file")
@@ -128,6 +132,14 @@ def ldap_action_ls(ldap_session, basedn):
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
+    # Modify entries in bulk!!
+    menu = menu_handler()
+    args = menu[0]
+    if args.bulk:
+        csv_file = args.modify_dn
+        ldap_modify_bulk(ldap_session, csv_file)
+        exit(0)
+
     logging.info("\nPerforming an attribute modification in %s!\n", dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
     # Encode attribute's new value to byte strings
