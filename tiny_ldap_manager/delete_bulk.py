@@ -47,4 +47,4 @@ def ldap_delete_bulk(ldap_session, txtfile):
         try:
             delete_entries_from_file(ldap_session, txtfile)
         except IOError:
-            logging.critical("\nERROR: file %s not found!", textfile)
+            logging.critical("\nERROR: file %s not found!", txtfile)
