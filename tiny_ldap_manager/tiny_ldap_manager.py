@@ -43,7 +43,6 @@ def main():
     args = menu[0]
     # Invoke sub-commands in argparse
     ldap_ls = menu[1].choices['ls']
-    ldap_add_entry = menu[1].choices['add']
     ldap_modify = menu[1].choices['modify']
     ldap_delete = menu[1].choices['delete']
     ldap_bulk = menu[1].choices['bulk']
@@ -52,9 +51,6 @@ def main():
         if args.action == "ls":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
-        elif args.action == "add":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_add_entry.set_defaults(func=ldap_action_add_entry(ldap_session, args.csvfile))
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
@@ -101,11 +97,6 @@ def menu_handler():
     ldap_modify.add_argument('-M', '--modifymode', nargs='?', type=str, \
             default='REPLACE', \
             help="Change operation mode for modifying an attribute")
-    # Add LDAP entries from a CSV file!
-    ldap_add_entry = subparser.add_parser('add', help="Add LDAP entries from a " \
-    "CSV file")
-    ldap_add_entry.add_argument('csvfile', \
-            help='CSV file to import LDAP entries from')
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
@@ -114,6 +105,8 @@ def menu_handler():
     gbulk = bulk.add_mutually_exclusive_group(required=True)
     # Modify LDAP attributes in bulk
     gbulk.add_argument('--modify-attributes')
+    # Add LDAP entries in bulk
+    gbulk.add_argument('--add-entries')
     # Delete LDAP entries in bulk
     gbulk.add_argument('--delete-entries')
 
@@ -179,7 +172,7 @@ def ldap_action_delete(ldap_session, delete_dn):
 
 
 def ldap_action_add_entry(ldap_session, csv_file):
-    "Add LDAP entries from CSV"
+    """ Add LDAP entries from CSV """
     csv_entries = read_csv(csv_file)
 
     ldapdata = [process_each_csv_entry(i) for i in csv_entries]
@@ -193,8 +186,6 @@ def ldap_action_add_entry(ldap_session, csv_file):
             logging.info("Adding LDAP entry: %s", dn)
         except ldap.ALREADY_EXISTS:
             logging.warning("Failed to add LDAP entry: %s. Already exists!", dn)
-    logging.info("\n\nClosing connection!\n")
-    ldap_session.unbind()
 
 
 def ldap_action_bulk(ldap_session, bulk_action):
@@ -203,6 +194,9 @@ def ldap_action_bulk(ldap_session, bulk_action):
     if args.modify_attributes:
         csv_file = args.modify_attributes
         ldap_modify_bulk(ldap_session, csv_file)
+    elif args.add_entries:
+        csv_file = args.add_entries
+        ldap_action_add_entry(ldap_session, csv_file)
     elif args.delete_entries:
         txt_file=args.delete_entries
         ldap_delete_bulk(ldap_session, txt_file)
