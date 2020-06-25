@@ -46,6 +46,7 @@ def main():
     ldap_add_entry = menu[1].choices['add']
     ldap_modify = menu[1].choices['modify']
     ldap_delete = menu[1].choices['delete']
+    ldap_bulk = menu[1].choices['bulk']
 
     try:
         if args.action == "ls":
@@ -62,7 +63,11 @@ def main():
         elif args.action == "delete":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
-                args.delete_dn, args.bulk))
+                args.delete_dn))
+        elif args.action == "bulk":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_bulk.set_defaults(func=ldap_action_bulk(ldap_session, \
+                args))
         else:
             logging.critical("You need to provide at least one action to perform!")
             exit(0)
@@ -96,9 +101,6 @@ def menu_handler():
     ldap_modify.add_argument('-M', '--modifymode', nargs='?', type=str, \
             default='REPLACE', \
             help="Change operation mode for modifying an attribute")
-    # Modify LDAP attributes in bulk
-    ldap_modify.add_argument('-B', '--bulk', help='Modify attributes in bulk', \
-    action='store_true')
     # Add LDAP entries from a CSV file!
     ldap_add_entry = subparser.add_parser('add', help="Add LDAP entries from a " \
     "CSV file")
@@ -107,9 +109,13 @@ def menu_handler():
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
+    # Usage of argparse's mutually exclusive group for LDAP operations in bulk!
+    bulk = subparser.add_parser('bulk', help='Perform an LDAP operation in bulk')
+    gbulk = bulk.add_mutually_exclusive_group(required=True)
+    # Modify LDAP attributes in bulk
+    gbulk.add_argument('--modify-attributes')
     # Delete LDAP entries in bulk
-    ldap_delete.add_argument("-B", "--bulk", help="Delete LDAP entries in bulk", \
-        action='store_true')
+    gbulk.add_argument('--delete-entries')
 
     args = parser.parse_args()
     return args, subparser
@@ -132,13 +138,6 @@ def ldap_action_ls(ldap_session, basedn):
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
-    # Modify entries in bulk!!
-    menu = menu_handler()
-    args = menu[0]
-    if args.bulk:
-        csv_file = args.modify_dn
-        ldap_modify_bulk(ldap_session, csv_file)
-        exit(0)
 
     logging.info("\nPerforming an attribute modification in %s!\n", dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
@@ -170,14 +169,11 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     ldap_session.unbind()
 
 
-def ldap_action_delete(ldap_session, delete_dn, bulk):
-    """ Delete one or more LDAP entries """
+def ldap_action_delete(ldap_session, delete_dn):
+    """ Delete an LDAP entry """
     logging.info("\n##### Please, remember to have a working BACKUP of your " \
     "LDAP database, prior to ANY modification!! #####\n")
-    if bulk:
-        ldap_delete_bulk(ldap_session, delete_dn)
-    else:
-        ldap_delete_single_dn(ldap_session, delete_dn)
+    ldap_delete_single_dn(ldap_session, delete_dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
@@ -197,6 +193,19 @@ def ldap_action_add_entry(ldap_session, csv_file):
             logging.info("Adding LDAP entry: %s", dn)
         except ldap.ALREADY_EXISTS:
             logging.warning("Failed to add LDAP entry: %s. Already exists!", dn)
+    logging.info("\n\nClosing connection!\n")
+    ldap_session.unbind()
+
+
+def ldap_action_bulk(ldap_session, bulk_action):
+    """ Perform an LDAP operation in bulk """
+    args = bulk_action
+    if args.modify_attributes:
+        csv_file = args.modify_attributes
+        ldap_modify_bulk(ldap_session, csv_file)
+    elif args.delete_entries:
+        txt_file=args.delete_entries
+        ldap_delete_bulk(ldap_session, txt_file)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
