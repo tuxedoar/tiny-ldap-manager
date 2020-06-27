@@ -26,7 +26,7 @@ def read_csv(csv_file):
     """ Read entries from CSV file """
     entries = []
     try:
-        logging.info("Opening CSV file: %s\n\n", csv_file)
+        logging.info("\nOpening CSV file: %s\n\n", csv_file)
         with open(csv_file, 'r') as f:
             # csv.DictReader() returns an OrederedDict object
             csv_reader = csv.DictReader(f, delimiter=';')
@@ -80,3 +80,56 @@ def process_each_csv_entry(csv_entry):
 
     ldapdata.append((entry_dn, csv_entry))
     return ldapdata
+
+
+def sanitize_csv_entry(csv_entry):
+    """ Check for incomplete or wrong formatted CSV content
+
+    Argument: csv_entry (a dict representing the content of each CSV entry)
+
+    Function used by: bulk --modify-attributes
+    """
+    # A sanity check is performed on each CSV entry, each one being represented
+    # as a dict, where: 'k' (key) is the DN and 'v' (value) is the attribute.
+    # For each CSV entry, a True/False value is assigned as a result of having
+    # checked both the DN and the attribute. This is stored in a tuple with the
+    # result for both of them. Later, this is also used for establishing an
+    # overall True/False result. 
+    for k, v in csv_entry.items():
+        # Both dn and attribute shouldn't have a 'None' or an empty string as
+        # value. Otherwise, it means an incomplete CSV entry!.
+        check_k = False if k == None or k == '' else True
+        check_v = False if v == None or v == '' else True
+        # Store a True/False result for DN and attribute
+        result = (check_k, check_v)
+    # Dict containing DN and attribute, should have 2 pairs of key-value.
+    # This is an additional check to be sure there isn't an incomplete CSV
+    # entry.
+    if int(len(csv_entry)) < 2:
+        result = (False, False)
+    # If check's result for DN or attribute is False, we assume an overall
+    # False result. 
+    if False in result:
+        result = False
+    else:
+        result = True
+    return result
+
+
+def csv_sanitizer(csv_file):
+    """ Evaulate each CSV entry and adds a verification result of its content
+
+    Function used by: bulk --modify-attributes
+    """
+    sanitized_csv = []
+    csv_data = read_csv(csv_file)
+    # Check it's not an empty file
+    if csv_data:
+        for each_entry in csv_data:
+            # Store both the CSV entry and the sanity check result on a list.
+            result = sanitize_csv_entry(each_entry)
+            sanitized_csv.append((each_entry, result))
+    else:
+        logging.info("Empty file or wrong format: nothing to process!\n")
+        exit(0)
+    return sanitized_csv
