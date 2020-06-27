@@ -10,7 +10,7 @@ More precisely, this program, allows you to:
  * Add LDAP entries with their corresponding *attributes*, by importing them
  from a CSV file!.
  * Query the LDAP attributes of a particular entry, based on its DN.
- * Support for performing some LDAP operations in bulk!.
+ * Perform some LDAP operations in bulk!.
 
 ## Requirements
 This is what it needs, in order to work:
@@ -147,6 +147,7 @@ The following *bulk* operations are supported:
  * `--modify-attributes` (modify LDAP attributes)
  * `--add-entries` (add LDAP entries)
  * `--delete-entries` (delete LDAP entries)
+
 As you can see from the syntax described above, each *bulk* operation requires
 a `[FILE]` argument, which can consist either of a simple text file or a CSV
 file, depending on each case. Please, see below for details. 
