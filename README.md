@@ -17,7 +17,7 @@ entries and *modify* LDAP attributes!.
 This is what it needs, in order to work:
  * [Python 3](https://www.python.org/downloads/)
  * [python-ldap](https://pypi.python.org/pypi/python-ldap/) library (tested
-with *v3.2.0*).
+with *v3.3.1*).
 
 ## Disclaimer
 I don't take any responsibility on the consequences of the usage of this
