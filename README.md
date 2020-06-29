@@ -8,9 +8,10 @@ More precisely, this program, allows you to:
  * Modify LDAP attributes (*replace*, *add* and *delete* modes, are supported!).
  * Delete LDAP entries. 
  * Add LDAP entries with their corresponding *attributes*, by importing them
- from a CSV file!.
+from a CSV file!.
  * Query the LDAP attributes of a particular entry, based on its DN.
- * Perform some LDAP operations in bulk!.
+ * Perform the following LDAP operations in bulk: *add* entries, *delete*
+entries and *modify* LDAP attributes!.
 
 ## Requirements
 This is what it needs, in order to work:
@@ -143,14 +144,14 @@ the desired LDAP operation. Its syntax works as follows:
 ```
 tiny-ldap-manager [SERVER] [BINDDN] bulk [OPERATION] [FILE]
 ```
+As you can see from the syntax described above, each *bulk* operation requires
+a `[FILE]` argument, which can consist either of a simple text file or a CSV
+file, depending on each case. Please, see below for details.
+
 The following *bulk* operations are supported:
  * `--modify-attributes` (modify LDAP attributes)
  * `--add-entries` (add LDAP entries)
  * `--delete-entries` (delete LDAP entries)
-
-As you can see from the syntax described above, each *bulk* operation requires
-a `[FILE]` argument, which can consist either of a simple text file or a CSV
-file, depending on each case. Please, see below for details. 
 
 
 ##### Adding LDAP entries in bulk
@@ -202,8 +203,8 @@ uid=mike,ou=people,dc=somecorp,dc=com
 
 ##### Modifying LDAP attributes in bulk
 Modifying LDAP attributes in *bulk*, works based on the premise that you want
-to either update the value of an existing LDAP *attribute* or create it, right
-away if it doesn't exist!. This is done by specifying a CSV file as an
+to either update the value of an existing LDAP *attribute* or create it right
+away, if it doesn't exist!. This is done by specifying a CSV file as an
 *argument*.
 
 In each entry, the CSV file must contain the following data:
