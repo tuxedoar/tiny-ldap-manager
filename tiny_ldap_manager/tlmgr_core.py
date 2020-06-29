@@ -34,6 +34,7 @@ def start_ldap_session(server, binddn):
         logging.info("\nSuccessful LDAP authentication!\n")
     return l
 
+
 def ask_user_confirmation():
     """ Ask for user confirmation """
     user_confirm = str(input("Are you sure you wanna proceed? (YES/n)"))
@@ -52,3 +53,13 @@ def retrieve_attrs_from_dn(ldap_session, basedn):
     ldap_data = ldap_session.search_s(basedn, ldap.SCOPE_BASE, 'objectClass=*')
     attrs = [i[1] for i in ldap_data]
     return attrs
+
+
+def ldap_delete_single_dn(ldap_session, delete_dn):
+    """ Delete a single LDAP entry based on its DN """
+    logging.info("\nWARNING: you are about to delete the " \
+    "following LDAP entry:\n\n %s\n", delete_dn)
+    if ask_user_confirmation():
+        ldap_session.delete_s(delete_dn)
+        logging.info("\nSuccessfully removed LDAP entry: %s\n", delete_dn)
+

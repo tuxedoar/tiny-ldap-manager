@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='tiny-ldap-manager',
-    version='0.1.2.post0',
+    version='0.2',
     description='Easily perform several LDAP operations',
     long_description=long_description,
     long_description_content_type="text/markdown",

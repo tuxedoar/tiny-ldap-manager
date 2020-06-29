@@ -24,9 +24,12 @@ from _version import __version__
 from tiny_ldap_manager.tlmgr_core import start_ldap_session
 from tiny_ldap_manager.tlmgr_core import retrieve_attrs_from_dn
 from tiny_ldap_manager.tlmgr_core import ask_user_confirmation
+from tiny_ldap_manager.tlmgr_core import ldap_delete_single_dn
+from tiny_ldap_manager.delete_bulk import ldap_delete_bulk
 from tiny_ldap_manager.tlmgr_modify import ldap_replace_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_add_attr
 from tiny_ldap_manager.tlmgr_modify import ldap_delete_attr
+from tiny_ldap_manager.tlmgr_modify import ldap_modify_bulk
 from tiny_ldap_manager.tlmgr_csv import read_csv
 from tiny_ldap_manager.tlmgr_csv import process_each_csv_entry
 
@@ -40,17 +43,14 @@ def main():
     args = menu[0]
     # Invoke sub-commands in argparse
     ldap_ls = menu[1].choices['ls']
-    ldap_add_entry = menu[1].choices['add']
     ldap_modify = menu[1].choices['modify']
     ldap_delete = menu[1].choices['delete']
+    ldap_bulk = menu[1].choices['bulk']
 
     try:
         if args.action == "ls":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_ls.set_defaults(func=ldap_action_ls(ldap_session, args.basedn))
-        elif args.action == "add":
-            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
-            ldap_add_entry.set_defaults(func=ldap_action_add_entry(ldap_session, args.csvfile))
         elif args.action == "modify":
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_modify.set_defaults(func=ldap_action_modify(ldap_session, \
@@ -60,6 +60,10 @@ def main():
             ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
             ldap_delete.set_defaults(func=ldap_action_delete(ldap_session, \
                 args.delete_dn))
+        elif args.action == "bulk":
+            ldap_session = start_ldap_session(args.SERVER, args.BINDDN)
+            ldap_bulk.set_defaults(func=ldap_action_bulk(ldap_session, \
+                args))
         else:
             logging.critical("You need to provide at least one action to perform!")
             exit(0)
@@ -93,14 +97,18 @@ def menu_handler():
     ldap_modify.add_argument('-M', '--modifymode', nargs='?', type=str, \
             default='REPLACE', \
             help="Change operation mode for modifying an attribute")
-    # Add LDAP entries from a CSV file!
-    ldap_add_entry = subparser.add_parser('add', help="Add LDAP entries from a " \
-    "CSV file")
-    ldap_add_entry.add_argument('csvfile', \
-            help='CSV file to import LDAP entries from')
     # Delete an LDAP entry!
     ldap_delete = subparser.add_parser('delete', help="Delete an LDAP entry")
     ldap_delete.add_argument("delete_dn", help="DN of the entry to be removed")
+    # Usage of argparse's mutually exclusive group for LDAP operations in bulk!
+    bulk = subparser.add_parser('bulk', help='Perform an LDAP operation in bulk')
+    gbulk = bulk.add_mutually_exclusive_group(required=True)
+    # Modify LDAP attributes in bulk
+    gbulk.add_argument('--modify-attributes')
+    # Add LDAP entries in bulk
+    gbulk.add_argument('--add-entries')
+    # Delete LDAP entries in bulk
+    gbulk.add_argument('--delete-entries')
 
     args = parser.parse_args()
     return args, subparser
@@ -123,6 +131,7 @@ def ldap_action_ls(ldap_session, basedn):
 
 def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
     """ Modify LDAP attributes """
+
     logging.info("\nPerforming an attribute modification in %s!\n", dn)
     attrs = retrieve_attrs_from_dn(ldap_session, dn)
     # Encode attribute's new value to byte strings
@@ -154,20 +163,16 @@ def ldap_action_modify(ldap_session, dn, attr, new_value, add_mode):
 
 
 def ldap_action_delete(ldap_session, delete_dn):
-    """ Delete an LDAP entry based on DN """
-    logging.info("\nWARNING: you are about to delete the " \
-    "following LDAP entry:\n\n %s\n", delete_dn)
+    """ Delete an LDAP entry """
     logging.info("\n##### Please, remember to have a working BACKUP of your " \
     "LDAP database, prior to ANY modification!! #####\n")
-    if ask_user_confirmation():
-        ldap_session.delete_s(delete_dn)
-        logging.info("\nLDAP entry %s has been removed!!\n", delete_dn)
+    ldap_delete_single_dn(ldap_session, delete_dn)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
 
 def ldap_action_add_entry(ldap_session, csv_file):
-    "Add LDAP entries from CSV"
+    """ Add LDAP entries from CSV """
     csv_entries = read_csv(csv_file)
 
     ldapdata = [process_each_csv_entry(i) for i in csv_entries]
@@ -181,6 +186,20 @@ def ldap_action_add_entry(ldap_session, csv_file):
             logging.info("Adding LDAP entry: %s", dn)
         except ldap.ALREADY_EXISTS:
             logging.warning("Failed to add LDAP entry: %s. Already exists!", dn)
+
+
+def ldap_action_bulk(ldap_session, bulk_action):
+    """ Perform an LDAP operation in bulk """
+    args = bulk_action
+    if args.modify_attributes:
+        csv_file = args.modify_attributes
+        ldap_modify_bulk(ldap_session, csv_file)
+    elif args.add_entries:
+        csv_file = args.add_entries
+        ldap_action_add_entry(ldap_session, csv_file)
+    elif args.delete_entries:
+        txt_file=args.delete_entries
+        ldap_delete_bulk(ldap_session, txt_file)
     logging.info("\n\nClosing connection!\n")
     ldap_session.unbind()
 
