@@ -229,7 +229,7 @@ Some remarks to take into account, about the content of the CSV file:
  * Remember to always use a *semi-colon* (`;`) as the CSV delimiter!.
  * Use the *header row* (first row) for specifying both the DN and the
  *attribute's* name.
- * The ONLY valid LDAP *key name* for the DN, is: `dn` ! (always in *lower
+ * The ONLY valid LDAP *key name* for the DN, is: `dn` ! (always use *lower
  cases*). Other names will be considered invalid!.
 
 The following, is regarding the general behavior when modifying LDAP
