@@ -219,7 +219,7 @@ uid=joe,ou=people,dc=somecorp,dc=com;1111
 uid=robert,ou=people,dc=somecorp,dc=com;2222
 uid=tom,ou=people,dc=somecorp,dc=com;3333
 ```
-Now, here's an example of how to apply whatever necessary changes, indicated by
+Now, here's an example of how to apply the changes, indicated by
 the CSV file above:
 ```
 tiny-ldap-manager ldap://192.168.100.5 "cn=config" bulk --modify-attributes ldap_modify.csv
