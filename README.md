@@ -96,10 +96,11 @@ For modifying or adding an attribute to an LDAP entry, you logically use the
 If you don't provide any additional arguments, the `REPLACE` mode is used by
 default!. The complete syntax for it, is:
 ```
-tiny-ldap-manager [SERVER] [USERDN] modify [ATTRIBUTE] [VALUE] 
+tiny-ldap-manager [SERVER] [USERDN] modify [DN] [ATTRIBUTE] [VALUE] 
 ```
-Where `[ATTRIBUTE]` is the name of the *attribute* you want to modify, and
-`[VALUE]` is the *new value* for that *attribute*!.
+Where `[DN]` is the *Distinguished Name* (DN) of the LDAP object whose attribute
+you wish to modify. The `[ATTRIBUTE]` is the name of the *attribute* to be modified,
+and `[VALUE]` is the *new value* for that *attribute*!.
 
 Let's see an example:
 ```
